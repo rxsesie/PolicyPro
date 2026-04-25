@@ -1021,7 +1021,7 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 function refresh(){updateStats();renderClients();if(document.getElementById('view-calendar').classList.contains('active'))renderCal();if(document.getElementById('view-renewals').classList.contains('active'))renderRenewals();if(document.getElementById('view-commissions').classList.contains('active'))renderCommissions();}
 
 // LOCK SCREEN
-const PASSCODE = '131095';
+const PASSCODE_HASH = 'b1e47ed8275c3ec91ffac8263b888d782f39b57f739631ab5233e999de9337a6';
 let lockEntry = '';
 
 function lockInput(digit) {
