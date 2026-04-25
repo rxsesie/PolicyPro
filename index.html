@@ -933,8 +933,12 @@ function renderCommissions(){
 
 // EXPORT
 function exportCopy(){
-  const s=[...policies].sort((a,b)=>(pd(a.effective)||new Date(0))-(pd(b.effective)||new Date(0)));
-  const t=s.map(p=>`• ${p.name} — ${fmt(p.effective)}`).join('\n');
+  const seen=new Set();
+  const s=[...policies]
+    .filter(p=>p.status==='active')
+    .filter(p=>{ if(seen.has(p.name.toLowerCase()))return false; seen.add(p.name.toLowerCase()); return true; })
+    .sort((a,b)=>a.name.localeCompare(b.name));
+  const t=s.map(p=>`• ${p.name}`).join('\n');
   // Use a temporary textarea as a reliable fallback
   const ta=document.createElement('textarea');
   ta.value=t; ta.style.position='fixed'; ta.style.opacity='0';
