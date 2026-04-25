@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>PolicyPro</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f7f8;
+  --surface: #ffffff;
+  --surface-2: #f0f0f2;
+  --border: #e4e4e7;
+  --border-strong: #d1d1d6;
+  --text-1: #111112;
+  --text-2: #6b6b74;
+  --text-3: #9999a4;
+  --purple: #6d28d9;
+  --purple-light: #ede9fe;
+  --green: #16a34a;
+  --green-light: #dcfce7;
+  --red: #dc2626;
+  --red-light: #fee2e2;
+  --amber: #d97706;
+  --amber-light: #fef3c7;
+  --orange: #ea580c;
+  --orange-light: #fff7ed;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --radius-xs: 6px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text-1);
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px;
+}
+#app {
+  display: flex; flex-direction: column;
+  height: 100dvh; max-width: 430px;
+  margin: 0 auto; background: var(--bg); overflow: hidden;
+}
+
+/* HEADER */
+.app-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 52px 18px 14px;
+  flex-shrink: 0;
+}
+.header-row {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 14px;
+}
+.app-wordmark { font-size: 17px; font-weight: 600; color: var(--text-1); letter-spacing: -0.3px; }
+.app-wordmark span { color: var(--purple); }
+.btn-new {
+  background: var(--purple); color: #fff; border: none;
+  font-family: 'DM Sans', sans-serif; font-size: 13px;
+  font-weight: 500; padding: 7px 14px; border-radius: 20px;
+  cursor: pointer; display: flex; align-items: center; gap: 5px; transition: opacity 0.15s;
+}
+.btn-new:active { opacity: 0.8; }
+
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.stat-pill {
+  background: var(--surface-2); border-radius: var(--radius-sm);
+  padding: 9px 8px; text-align: center; cursor: pointer;
+  border: 1px solid transparent; transition: border-color 0.15s;
+}
+.stat-pill:active { border-color: var(--purple); }
+.stat-num { font-size: 18px; font-weight: 600; color: var(--text-1); line-height: 1; margin-bottom: 3px; letter-spacing: -0.5px; }
+.stat-num.accent { color: var(--purple); }
+.stat-lbl { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-3); }
+
+/* ALERTS */
+.alert-stack {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 18px; display: flex; flex-direction: column; gap: 0; flex-shrink: 0;
+}
+.alert-stack:empty { border-bottom: none; }
+.alert-banner {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 0; cursor: pointer; transition: opacity 0.15s;
+  border-top: 1px solid var(--border);
+}
+.alert-banner:first-child { border-top: none; }
+.alert-banner.hidden { display: none; }
+.alert-banner:active { opacity: 0.7; }
+.adot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.alert-14 .adot { background: var(--amber); }
+.alert-7  .adot { background: var(--orange); }
+.alert-tw { flex: 1; }
+.alert-title { font-size: 12px; font-weight: 600; color: var(--text-1); }
+.alert-sub   { font-size: 11px; color: var(--text-3); }
+.alert-arr   { font-size: 13px; color: var(--text-3); }
+
+/* NAV */
+.nav-tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.nav-tab {
+  flex: 1; padding: 10px 4px 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  font-size: 10px; font-weight: 500; color: var(--text-3); cursor: pointer;
+  border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s;
+}
+.nav-tab .ico { font-size: 15px; }
+.nav-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+
+/* VIEWS */
+.view { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+.view.active { display: flex; }
+.scroll { overflow-y: auto; flex: 1; padding: 14px 18px; -webkit-overflow-scrolling: touch; }
+.scroll::-webkit-scrollbar { display: none; }
+
+.sec-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-3); margin-bottom: 8px; padding-left: 2px; }
+
+/* SEARCH */
+.search-wrap { position: relative; margin-bottom: 10px; }
+.search-wrap input {
+  width: 100%; padding: 9px 14px 9px 34px;
+  border: 1px solid var(--border); border-radius: 20px;
+  font-size: 13px; font-family: 'DM Sans', sans-serif;
+  background: var(--surface); color: var(--text-1); transition: border-color 0.15s;
+}
+.search-wrap input:focus { outline: none; border-color: var(--purple); }
+.search-ico { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 13px; }
+
+/* CHIPS */
+.chip-row { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 2px; }
+.chip-row::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0; padding: 5px 12px; border-radius: 20px;
+  font-size: 12px; font-weight: 500; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text-2); cursor: pointer; transition: all 0.12s; white-space: nowrap;
+}
+.chip.active { background: var(--purple); border-color: var(--purple); color: #fff; }
+
+/* CARDS */
+.policy-card {
+  background: var(--surface); border-radius: var(--radius);
+  margin-bottom: 8px; border: 1px solid var(--border);
+  overflow: hidden; box-shadow: var(--shadow); transition: transform 0.1s;
+}
+.policy-card:active { transform: scale(0.99); }
+.card-main { display: flex; }
+.card-bar { width: 3px; flex-shrink: 0; }
+.bar-active   { background: var(--purple); }
+.bar-renewed  { background: var(--green); }
+.bar-canceled { background: var(--red); }
+.bar-soon14   { background: var(--amber); }
+.bar-soon7    { background: var(--orange); }
+.card-body { padding: 12px 14px; flex: 1; cursor: pointer; }
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px; }
+.card-name { font-size: 15px; font-weight: 600; color: var(--text-1); letter-spacing: -0.2px; }
+.badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.3px; flex-shrink: 0; }
+.b-active   { background: var(--purple-light); color: var(--purple); }
+.b-renewed  { background: var(--green-light);  color: var(--green); }
+.b-canceled { background: var(--red-light);    color: var(--red); }
+.b-soon14   { background: var(--amber-light);  color: var(--amber); }
+.b-soon7    { background: var(--orange-light); color: var(--orange); }
+.card-co-tag {
+  font-size: 10px; font-weight: 600; color: var(--purple);
+  background: var(--purple-light); padding: 2px 8px;
+  border-radius: 20px; display: inline-block; margin-bottom: 8px;
+}
+.card-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 12px; margin-bottom: 8px; }
+.mp { display: flex; flex-direction: column; }
+.mk { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-3); }
+.mv { font-size: 12px; color: var(--text-2); font-weight: 500; }
+.card-comm { display: flex; justify-content: space-between; align-items: center; background: var(--surface-2); border-radius: var(--radius-xs); padding: 6px 10px; }
+.cc-lbl { font-size: 10px; color: var(--text-3); font-weight: 500; }
+.cc-val { font-size: 14px; font-weight: 600; color: var(--purple); letter-spacing: -0.3px; }
+.card-actions { display: flex; border-top: 1px solid var(--border); }
+.ca {
+  flex: 1; padding: 9px; text-align: center; font-size: 12px; font-weight: 500;
+  border: none; background: none; cursor: pointer; color: var(--text-2);
+  font-family: 'DM Sans', sans-serif; transition: background 0.1s;
+}
+.ca:not(:last-child) { border-right: 1px solid var(--border); }
+.ca:active { background: var(--surface-2); }
+.ca.edit { color: var(--purple); }
+.ca.renew { color: var(--green); }
+.ca.del { color: var(--red); }
+
+/* EMPTY */
+.empty { text-align: center; padding: 52px 24px; }
+.empty .ei { font-size: 36px; margin-bottom: 10px; }
+.empty p { font-size: 13px; line-height: 1.6; color: var(--text-2); }
+
+/* CALENDAR */
+.cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.cal-nav { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xs); padding: 5px 12px; font-size: 14px; cursor: pointer; color: var(--text-2); font-family: 'DM Sans', sans-serif; }
+.cal-mo { font-size: 16px; font-weight: 600; color: var(--text-1); letter-spacing: -0.3px; }
+.cal-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 14px; box-shadow: var(--shadow); }
+.cal-dow { display: grid; grid-template-columns: repeat(7,1fr); background: var(--surface-2); border-bottom: 1px solid var(--border); }
+.cal-dow span { text-align: center; font-size: 10px; font-weight: 600; color: var(--text-3); padding: 7px 0; text-transform: uppercase; letter-spacing: 0.3px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 1px; background: var(--border); }
+.cal-cell { background: var(--surface); min-height: 50px; padding: 5px 4px; cursor: pointer; transition: background 0.1s; }
+.cal-cell:active { background: var(--purple-light); }
+.cal-cell.other { background: var(--surface-2); }
+.cal-dn { font-size: 11px; font-weight: 500; color: var(--text-2); line-height: 1; margin-bottom: 3px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+.cal-cell.today .cal-dn { background: var(--purple); color: #fff; font-weight: 700; }
+.cal-cell.other .cal-dn { color: var(--text-3); }
+.cdots { display: flex; flex-wrap: wrap; gap: 2px; }
+.cdot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.cdot-active   { background: var(--purple); }
+.cdot-renewal  { background: var(--amber); }
+.cdot-canceled { background: var(--red); }
+.cdot-renewed  { background: var(--green); }
+.cal-ev { background: var(--surface); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 7px; border: 1px solid var(--border); border-left: 3px solid var(--purple); box-shadow: var(--shadow); }
+.cal-ev.renewal  { border-left-color: var(--amber); }
+.cal-ev.renewed  { border-left-color: var(--green); }
+.cal-ev.canceled { border-left-color: var(--red); }
+.cal-ev-name { font-size: 13px; font-weight: 600; color: var(--text-1); }
+.cal-ev-kind { font-size: 11px; color: var(--text-3); }
+.cal-legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+.leg { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-2); }
+
+/* RENEWALS */
+.ren-item {
+  background: var(--surface); border-radius: var(--radius);
+  padding: 12px 14px; margin-bottom: 7px; border: 1px solid var(--border);
+  box-shadow: var(--shadow); display: flex; align-items: center; gap: 10px;
+}
+.ren-item.u14 { border-left: 3px solid var(--amber); }
+.ren-item.u7  { border-left: 3px solid var(--orange); }
+.ren-av {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--purple-light); color: var(--purple);
+  font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.ren-info { flex: 1; min-width: 0; }
+.ren-name { font-size: 13px; font-weight: 600; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ren-date { font-size: 11px; color: var(--text-3); }
+.days-chip { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; flex-shrink: 0; }
+.dc14 { background: var(--amber-light); color: var(--amber); }
+.dc7  { background: var(--orange-light); color: var(--orange); }
+.dc0  { background: var(--red-light); color: var(--red); }
+.ren-btn { background: var(--green-light); color: var(--green); border: none; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600; padding: 5px 10px; border-radius: 20px; cursor: pointer; flex-shrink: 0; transition: opacity 0.15s; }
+.ren-btn:active { opacity: 0.7; }
+
+/* COMMISSION */
+.comm-hero { background: var(--surface); border-radius: var(--radius); padding: 18px; margin-bottom: 12px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+.ch-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-3); margin-bottom: 4px; }
+.ch-val { font-size: 36px; font-weight: 600; color: var(--text-1); letter-spacing: -1.5px; margin-bottom: 14px; }
+.comm-sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cs { background: var(--surface-2); border-radius: var(--radius-sm); padding: 10px; }
+.cs-lbl { font-size: 10px; color: var(--text-3); font-weight: 500; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.3px; }
+.cs-val { font-size: 18px; font-weight: 600; color: var(--text-1); letter-spacing: -0.5px; }
+.month-row { background: var(--surface); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 7px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); box-shadow: var(--shadow); }
+.mo-name { font-size: 13px; font-weight: 600; color: var(--text-1); }
+.mo-cnt  { font-size: 11px; color: var(--text-3); }
+.mo-amt  { font-size: 16px; font-weight: 600; color: var(--purple); letter-spacing: -0.5px; }
+
+/* EXPORT */
+.export-btn { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: center; gap: 14px; cursor: pointer; box-shadow: var(--shadow); margin-bottom: 10px; transition: box-shadow 0.15s; text-align: left; font-family: 'DM Sans', sans-serif; }
+.export-btn:active { box-shadow: var(--shadow-md); }
+.exp-ico { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; background: var(--surface-2); }
+.exp-lbl strong { font-size: 14px; font-weight: 600; color: var(--text-1); display: block; }
+.exp-lbl span { font-size: 12px; color: var(--text-3); }
+.import-row { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; box-shadow: var(--shadow); }
+.ir-text strong { font-size: 13px; font-weight: 600; display: block; color: var(--text-1); }
+.ir-text span { font-size: 11px; color: var(--text-3); }
+.ir-btn { background: var(--purple); color: #fff; border: none; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 7px 14px; border-radius: 20px; cursor: pointer; flex-shrink: 0; }
+
+/* MODAL */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.32); backdrop-filter: blur(3px); z-index: 100; display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+.overlay.open { opacity: 1; pointer-events: all; }
+.sheet { background: var(--surface); border-radius: 20px 20px 0 0; width: 100%; max-width: 430px; margin: 0 auto; max-height: 93dvh; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.28s cubic-bezier(0.32, 1.12, 0.64, 1); }
+.overlay.open .sheet { transform: translateY(0); }
+.sh-handle { width: 32px; height: 3px; background: var(--border-strong); border-radius: 2px; margin: 10px auto 0; flex-shrink: 0; }
+.sh-header { padding: 14px 18px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.sh-title { font-size: 17px; font-weight: 600; color: var(--text-1); letter-spacing: -0.3px; }
+.sh-sub   { font-size: 12px; color: var(--text-3); margin-top: 1px; }
+.sh-body  { overflow-y: auto; padding: 14px 18px; flex: 1; }
+.sh-body::-webkit-scrollbar { display: none; }
+.sh-footer { padding: 10px 18px 26px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-shrink: 0; }
+
+/* FORM */
+.f-sec { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--purple); margin: 16px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.f-sec:first-child { margin-top: 0; }
+.f-grp { margin-bottom: 10px; }
+.f-lbl { display: block; font-size: 11px; font-weight: 600; color: var(--text-2); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.2px; }
+.f-inp { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text-1); background: var(--surface); transition: border-color 0.15s, box-shadow 0.15s; -webkit-appearance: none; }
+.f-inp:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px var(--purple-light); }
+.f-inp.ro { background: var(--purple-light); color: var(--purple); font-weight: 600; }
+.f-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pay-grid { background: var(--surface-2); border-radius: var(--radius-sm); padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border: 1px solid var(--border); }
+.pay-grid .f-grp { margin-bottom: 0; }
+.btn { flex: 1; padding: 13px; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: opacity 0.15s; }
+.btn:active { opacity: 0.8; }
+.btn-p { background: var(--purple); color: #fff; }
+.btn-g { background: var(--surface-2); color: var(--text-2); }
+.btn-d { background: var(--red-light); color: var(--red); }
+.cancel-info { background: var(--red-light); border-radius: var(--radius-sm); padding: 10px 12px; margin-top: 6px; font-size: 12px; color: var(--red); line-height: 1.6; display: none; }
+
+/* DETAIL */
+.d-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.d-row:last-child { border-bottom: none; }
+.d-key { font-size: 12px; color: var(--text-3); font-weight: 500; }
+.d-val { font-size: 13px; color: var(--text-1); font-weight: 500; text-align: right; max-width: 62%; word-break: break-all; }
+
+/* IMPORT SCREEN */
+#import-screen { position: fixed; inset: 0; background: var(--bg); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 28px; text-align: center; }
+#import-screen.hidden { display: none; }
+.is-logo { font-size: 24px; font-weight: 700; color: var(--text-1); margin-bottom: 2px; }
+.is-logo span { color: var(--purple); }
+.is-tag  { font-size: 12px; color: var(--text-3); margin-bottom: 52px; }
+.is-ico  { font-size: 40px; margin-bottom: 16px; }
+.is-ttl  { font-size: 20px; font-weight: 600; color: var(--text-1); margin-bottom: 6px; letter-spacing: -0.3px; }
+.is-dsc  { font-size: 13px; color: var(--text-2); line-height: 1.6; margin-bottom: 32px; }
+.is-acts { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 260px; }
+.is-main { background: var(--purple); color: #fff; padding: 14px; border-radius: var(--radius-sm); font-weight: 600; font-size: 14px; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: opacity 0.15s; }
+.is-main:active { opacity: 0.8; }
+.is-skip { background: var(--surface-2); color: var(--text-2); padding: 12px; border-radius: var(--radius-sm); font-size: 13px; border: 1px solid var(--border); cursor: pointer; font-family: 'DM Sans', sans-serif; }
+
+.toast { position: fixed; bottom: 88px; left: 50%; transform: translateX(-50%) translateY(10px); background: var(--text-1); color: #fff; padding: 9px 18px; border-radius: 20px; font-size: 13px; font-weight: 500; z-index: 300; opacity: 0; transition: all 0.25s; white-space: nowrap; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* LOCK SCREEN */
+#lock-screen {
+  position: fixed; inset: 0; background: var(--bg);
+  z-index: 400; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px 28px; text-align: center;
+}
+#lock-screen.hidden { display: none; }
+.lock-icon { font-size: 36px; margin-bottom: 14px; }
+.lock-dots {
+  display: flex; gap: 14px; margin: 18px 0 10px;
+}
+.lock-dots span {
+  width: 13px; height: 13px; border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  background: transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+.lock-dots span.filled {
+  background: var(--purple);
+  border-color: var(--purple);
+}
+.lock-dots.shake {
+  animation: lockShake 0.4s ease;
+}
+@keyframes lockShake {
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-8px)}
+  40%{transform:translateX(8px)}
+  60%{transform:translateX(-6px)}
+  80%{transform:translateX(6px)}
+}
+.lock-error {
+  font-size: 12px; color: var(--red);
+  font-weight: 500; margin-bottom: 6px;
+  min-height: 18px;
+}
+.lock-error.hidden { visibility: hidden; }
+.lock-pad {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 12px; margin-top: 16px; max-width: 260px; width: 100%;
+}
+.lp-btn {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 50%; width: 72px; height: 72px;
+  font-size: 22px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text-1); cursor: pointer;
+  transition: background 0.1s;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto; box-shadow: var(--shadow);
+}
+.lp-btn:active { background: var(--purple-light); }
+.lp-del { font-size: 18px; color: var(--text-2); }
+</style>
+</head>
+<body>
+
+<div id="lock-screen">
+  <div class="is-logo">Policy<span>Pro</span></div>
+  <div class="is-tag">Auto Insurance CRM</div>
+  <div class="lock-icon">🔒</div>
+  <div class="is-ttl">Enter Passcode</div>
+  <div class="lock-dots" id="lock-dots">
+    <span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <div class="lock-error hidden" id="lock-error">Incorrect passcode</div>
+  <div class="lock-pad">
+    <button class="lp-btn" onclick="lockInput('1')">1</button>
+    <button class="lp-btn" onclick="lockInput('2')">2</button>
+    <button class="lp-btn" onclick="lockInput('3')">3</button>
+    <button class="lp-btn" onclick="lockInput('4')">4</button>
+    <button class="lp-btn" onclick="lockInput('5')">5</button>
+    <button class="lp-btn" onclick="lockInput('6')">6</button>
+    <button class="lp-btn" onclick="lockInput('7')">7</button>
+    <button class="lp-btn" onclick="lockInput('8')">8</button>
+    <button class="lp-btn" onclick="lockInput('9')">9</button>
+    <div></div>
+    <button class="lp-btn" onclick="lockInput('0')">0</button>
+    <button class="lp-btn lp-del" onclick="lockDelete()">⌫</button>
+  </div>
+</div>
+
+<div id="import-screen" class="hidden">
+  <div class="is-logo">Policy<span>Pro</span></div>
+  <div class="is-tag">Auto Insurance CRM</div>
+  <div class="is-ico">📂</div>
+  <div class="is-ttl">Import Existing Data</div>
+  <div class="is-dsc">Upload a CSV to bring in your existing clients, or start fresh and add them manually.</div>
+  <div class="is-acts">
+    <button class="is-main" onclick="document.getElementById('csv-inp').click()">Import CSV File</button>
+    <button class="is-skip" onclick="dismissImport()">Start Fresh</button>
+  </div>
+  <input type="file" id="csv-inp" accept=".csv" style="display:none" onchange="handleCSV(event)">
+</div>
+
+<div id="app">
+  <div class="app-header">
+    <div class="header-row">
+      <div class="app-wordmark">Policy<span>Pro</span></div>
+      <button class="btn-new" onclick="openAdd()">＋ New Policy</button>
+    </div>
+    <div class="stats-row">
+      <div class="stat-pill" onclick="switchTab('clients')"><div class="stat-num" id="s-total">0</div><div class="stat-lbl">Clients</div></div>
+      <div class="stat-pill" onclick="switchTab('renewals')"><div class="stat-num" id="s-soon">0</div><div class="stat-lbl">Due Soon</div></div>
+      <div class="stat-pill" onclick="switchTab('commissions')"><div class="stat-num accent" id="s-month">$0</div><div class="stat-lbl">This Mo.</div></div>
+      <div class="stat-pill" onclick="switchTab('commissions')"><div class="stat-num accent" id="s-total-c">$0</div><div class="stat-lbl">Total</div></div>
+    </div>
+  </div>
+
+  <div class="alert-stack" id="alert-stack">
+    <div class="alert-banner alert-7 hidden" id="alert-7" onclick="switchTab('renewals')">
+      <span class="adot"></span>
+      <div class="alert-tw"><div class="alert-title" id="a7-txt">Urgent renewals this week</div><div class="alert-sub">Expiring within 7 days</div></div>
+      <span class="alert-arr">›</span>
+    </div>
+    <div class="alert-banner alert-14 hidden" id="alert-14" onclick="switchTab('renewals')">
+      <span class="adot"></span>
+      <div class="alert-tw"><div class="alert-title" id="a14-txt">Renewals coming up</div><div class="alert-sub">Expiring within 14 days</div></div>
+      <span class="alert-arr">›</span>
+    </div>
+  </div>
+
+  <div class="nav-tabs">
+    <div class="nav-tab active" id="tab-clients"     onclick="switchTab('clients')"><span class="ico">👥</span>Clients</div>
+    <div class="nav-tab"        id="tab-calendar"    onclick="switchTab('calendar')"><span class="ico">📅</span>Calendar</div>
+    <div class="nav-tab"        id="tab-renewals"    onclick="switchTab('renewals')"><span class="ico">🔔</span>Renewals</div>
+    <div class="nav-tab"        id="tab-commissions" onclick="switchTab('commissions')"><span class="ico">💰</span>Commission</div>
+    <div class="nav-tab"        id="tab-export"      onclick="switchTab('export')"><span class="ico">📤</span>Export</div>
+  </div>
+
+  <!-- CLIENTS -->
+  <div class="view active" id="view-clients">
+    <div class="scroll">
+      <div class="search-wrap"><span class="search-ico">🔍</span><input type="text" placeholder="Search clients…" id="search-inp" oninput="renderClients()"></div>
+      <div class="chip-row">
+        <div class="chip active" onclick="setFilter('all',this)">All</div>
+        <div class="chip" onclick="setFilter('active',this)">Active</div>
+        <div class="chip" onclick="setFilter('renewed',this)">Renewed</div>
+        <div class="chip" onclick="setFilter('canceled',this)">Canceled</div>
+        <div class="chip" onclick="setFilter('soon',this)">Due Soon</div>
+      </div>
+      <div id="clients-list"></div>
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="view" id="view-calendar">
+    <div class="scroll">
+      <div class="cal-header">
+        <button class="cal-nav" onclick="calNav(-1)">‹</button>
+        <div class="cal-mo" id="cal-mo-lbl"></div>
+        <button class="cal-nav" onclick="calNav(1)">›</button>
+      </div>
+      <div class="cal-card">
+        <div class="cal-dow"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+      <div class="sec-label" id="cal-day-lbl">Tap a date to see policies</div>
+      <div id="cal-events"></div>
+      <div class="cal-legend" style="margin-top:12px">
+        <div class="leg"><span class="cdot cdot-active"></span>Effective</div>
+        <div class="leg"><span class="cdot cdot-renewal"></span>Renewal Due</div>
+        <div class="leg"><span class="cdot cdot-renewed"></span>Renewed</div>
+        <div class="leg"><span class="cdot cdot-canceled"></span>Canceled</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RENEWALS -->
+  <div class="view" id="view-renewals">
+    <div class="scroll">
+      <div class="sec-label" id="ren-cnt-lbl">Upcoming Renewals</div>
+      <div id="renewals-list"></div>
+    </div>
+  </div>
+
+  <!-- COMMISSION -->
+  <div class="view" id="view-commissions">
+    <div class="scroll">
+      <div class="comm-hero">
+        <div class="ch-lbl">Total Commission Earned</div>
+        <div class="ch-val" id="comm-total">$0.00</div>
+        <div class="comm-sub-grid">
+          <div class="cs"><div class="cs-lbl">This Month</div><div class="cs-val" id="comm-month">$0.00</div></div>
+          <div class="cs"><div class="cs-lbl">Active Policies</div><div class="cs-val" id="comm-active">0</div></div>
+        </div>
+      </div>
+      <div class="sec-label">By Month</div>
+      <div id="comm-months"></div>
+    </div>
+  </div>
+
+  <!-- EXPORT -->
+  <div class="view" id="view-export">
+    <div class="scroll">
+      <div class="import-row">
+        <div class="ir-text"><strong>Import CSV</strong><span>Add clients from a saved file</span></div>
+        <button class="ir-btn" onclick="document.getElementById('csv-inp2').click()">Import</button>
+      </div>
+      <input type="file" id="csv-inp2" accept=".csv" style="display:none" onchange="handleCSV(event)">
+      <div class="sec-label">Export</div>
+      <button class="export-btn" onclick="exportPDF()"><div class="exp-ico">📄</div><div class="exp-lbl"><strong>Export PDF</strong><span>Client name + effective date</span></div></button>
+      <button class="export-btn" onclick="exportCopy()"><div class="exp-ico">📋</div><div class="exp-lbl"><strong>Copy to Clipboard</strong><span>Bullet list, paste anywhere</span></div></button>
+      <button class="export-btn" onclick="exportCSV()"><div class="exp-ico">📊</div><div class="exp-lbl"><strong>Full CSV Backup</strong><span>All data, all fields</span></div></button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add/Edit -->
+<div class="overlay" id="m-client">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-header"><div class="sh-title" id="m-title">New Policy</div><div class="sh-sub" id="m-sub">Fill in client details</div></div>
+    <div class="sh-body">
+      <div class="f-sec">Client Info</div>
+      <div class="f-grp"><label class="f-lbl">Client Name *</label><input class="f-inp" id="f-name" type="text" placeholder="Full name"></div>
+      <div class="f-grp"><label class="f-lbl">Company</label><input class="f-inp" id="f-co" type="text" value="GEICO"></div>
+      <div class="f-sec">Policy Dates</div>
+      <div class="f-row">
+        <div class="f-grp"><label class="f-lbl">Effective Date *</label><input class="f-inp" id="f-eff" type="date"></div>
+        <div class="f-grp"><label class="f-lbl">Expiration Date *</label><input class="f-inp" id="f-exp" type="date"></div>
+      </div>
+      <div class="f-sec">Portal Access</div>
+      <div class="f-row">
+        <div class="f-grp"><label class="f-lbl">Username</label><input class="f-inp" id="f-user" type="text" placeholder="or N/A"></div>
+        <div class="f-grp"><label class="f-lbl">Password</label><input class="f-inp" id="f-pass" type="text" placeholder="or N/A"></div>
+      </div>
+      <div class="f-sec">Payment Breakdown</div>
+      <div class="pay-grid">
+        <div class="f-grp"><label class="f-lbl">1st Month ($)</label><input class="f-inp" id="f-p1" type="number" placeholder="0.00"></div>
+        <div class="f-grp"><label class="f-lbl">Other 5 Mo. ($)</label><input class="f-inp" id="f-p2" type="number" placeholder="0.00"></div>
+        <div class="f-grp"><label class="f-lbl">Full 6-Mo. ($)</label><input class="f-inp" id="f-full" type="number" placeholder="0.00" oninput="calcC()"></div>
+        <div class="f-grp"><label class="f-lbl">Commission (10%)</label><input class="f-inp ro" id="f-comm" type="text" readonly placeholder="Auto"></div>
+      </div>
+      <div class="f-sec">Status</div>
+      <div class="f-grp"><label class="f-lbl">Policy Status</label>
+        <select class="f-inp" id="f-status" onchange="onStChange()">
+          <option value="active">Active (New)</option>
+          <option value="renewed">Renewed</option>
+          <option value="canceled">Canceled</option>
+        </select>
+      </div>
+      <div class="f-grp" id="f-cg" style="display:none"><label class="f-lbl">Cancellation Date</label><input class="f-inp" id="f-cd" type="date" oninput="calcCB()"></div>
+      <div class="cancel-info" id="cancel-info"></div>
+    </div>
+    <div class="sh-footer">
+      <button class="btn btn-g" onclick="closeM('m-client')">Cancel</button>
+      <button class="btn btn-p" onclick="saveClient()">Save Policy</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Detail -->
+<div class="overlay" id="m-detail">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-header"><div class="sh-title" id="d-name"></div><div class="sh-sub" id="d-badge"></div></div>
+    <div class="sh-body" id="d-body"></div>
+    <div class="sh-footer">
+      <button class="btn btn-g" onclick="closeM('m-detail')">Close</button>
+      <button class="btn btn-p" onclick="editFromDetail()">Edit</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Renew -->
+<div class="overlay" id="m-renew">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-header"><div class="sh-title">Renew Policy</div><div class="sh-sub" id="ren-sub">Enter new details</div></div>
+    <div class="sh-body">
+      <div class="f-sec">New Policy Dates</div>
+      <div class="f-row">
+        <div class="f-grp"><label class="f-lbl">New Effective *</label><input class="f-inp" id="r-eff" type="date"></div>
+        <div class="f-grp"><label class="f-lbl">New Expiration *</label><input class="f-inp" id="r-exp" type="date"></div>
+      </div>
+      <div class="f-sec">New Payment Breakdown</div>
+      <div class="pay-grid">
+        <div class="f-grp"><label class="f-lbl">1st Month ($)</label><input class="f-inp" id="r-p1" type="number" placeholder="0.00"></div>
+        <div class="f-grp"><label class="f-lbl">Other 5 Mo. ($)</label><input class="f-inp" id="r-p2" type="number" placeholder="0.00"></div>
+        <div class="f-grp"><label class="f-lbl">Full 6-Mo. ($)</label><input class="f-inp" id="r-full" type="number" placeholder="0.00" oninput="calcRC()"></div>
+        <div class="f-grp"><label class="f-lbl">Commission (10%)</label><input class="f-inp ro" id="r-comm" type="text" readonly placeholder="Auto"></div>
+      </div>
+    </div>
+    <div class="sh-footer">
+      <button class="btn btn-g" onclick="closeM('m-renew')">Cancel</button>
+      <button class="btn btn-p" onclick="saveRenewal()">Confirm Renewal</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Delete -->
+<div class="overlay" id="m-delete">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-header"><div class="sh-title">Delete Policy</div><div class="sh-sub" id="del-sub">This cannot be undone.</div></div>
+    <div class="sh-body"><p style="font-size:14px;color:var(--text-2);line-height:1.7">Permanently delete this policy? All data including commission records will be removed.</p></div>
+    <div class="sh-footer">
+      <button class="btn btn-g" onclick="closeM('m-delete')">Keep It</button>
+      <button class="btn btn-d" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let policies = JSON.parse(localStorage.getItem('pp_v3')||'[]');
+let editId=null, deleteId=null, renewId=null, detailId=null, curFilter='all';
+let calY, calM;
+const today=new Date(); today.setHours(0,0,0,0);
+
+const save=()=>localStorage.setItem('pp_v3',JSON.stringify(policies));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
+const fmt=str=>{if(!str)return'N/A';const[y,m,d]=str.split('-');return`${m}/${d}/${y}`;};
+const pd=str=>{if(!str)return null;return new Date(str+'T00:00:00');};
+const daysTo=s=>{const d=pd(s);if(!d)return 9999;return Math.round((d-today)/86400000);};
+const money=n=>'$'+parseFloat(n||0).toFixed(2);
+const moneyS=n=>{const v=parseFloat(n||0);return v>=1000?'$'+(v/1000).toFixed(1)+'k':'$'+v.toFixed(0);};
+
+function getStatus(p){
+  if(p.status==='canceled')return'canceled';
+  if(p.status==='renewed')return'renewed';
+  const d=daysTo(p.expiration);
+  if(d>=0&&d<=7)return'soon7';
+  if(d>=0&&d<=14)return'soon14';
+  return'active';
+}
+function stLabel(s){return{active:'Active',canceled:'Canceled',renewed:'Renewed',soon14:'Due in 14d',soon7:'Due in 7d'}[s]||s;}
+function bClass(s){return{active:'b-active',canceled:'b-canceled',renewed:'b-renewed',soon14:'b-soon14',soon7:'b-soon7'}[s]||'b-active';}
+function barClass(s){return{active:'bar-active',canceled:'bar-canceled',renewed:'bar-renewed',soon14:'bar-soon14',soon7:'bar-soon7'}[s]||'bar-active';}
+
+function earnedC(p){
+  if(p.status!=='canceled'||!p.cancelDate||!p.effective||!p.expiration)return parseFloat(p.commission||0);
+  const eff=pd(p.effective),exp=pd(p.expiration),can=pd(p.cancelDate);
+  const tot=(exp-eff)/86400000;
+  const act=Math.max(0,Math.min((can-eff)/86400000,tot));
+  return parseFloat(p.commission||0)*(act/tot);
+}
+
+// STATS
+function updateStats(){
+  const active=policies.filter(p=>p.status!=='canceled');
+  const s14=policies.filter(p=>{const s=getStatus(p);return s==='soon14'||s==='soon7';});
+  const s7=policies.filter(p=>getStatus(p)==='soon7');
+  const tot=policies.reduce((s,p)=>s+earnedC(p),0);
+  const nm=today.getMonth(),ny=today.getFullYear();
+  const mo=active.filter(p=>{const d=pd(p.effective);return d&&d.getMonth()===nm&&d.getFullYear()===ny;}).reduce((s,p)=>s+earnedC(p),0);
+
+  document.getElementById('s-total').textContent=policies.length;
+  document.getElementById('s-soon').textContent=s14.length;
+  document.getElementById('s-month').textContent=moneyS(mo);
+  document.getElementById('s-total-c').textContent=moneyS(tot);
+
+  const a7=document.getElementById('alert-7');
+  const a14=document.getElementById('alert-14');
+
+  if(s7.length>0){a7.classList.remove('hidden');document.getElementById('a7-txt').textContent=`${s7.length} urgent renewal${s7.length>1?'s':''} this week`;}
+  else a7.classList.add('hidden');
+
+  const only14=s14.filter(p=>getStatus(p)==='soon14');
+  if(only14.length>0){a14.classList.remove('hidden');document.getElementById('a14-txt').textContent=`${only14.length} renewal${only14.length>1?'s':''} within 14 days`;}
+  else a14.classList.add('hidden');
+
+  // show/hide alert-stack border
+  const stack=document.getElementById('alert-stack');
+  const anyVisible=!a7.classList.contains('hidden')||!a14.classList.contains('hidden');
+  stack.style.paddingTop=anyVisible?'8px':'0';
+  stack.style.paddingBottom=anyVisible?'8px':'0';
+  stack.style.borderBottomWidth=anyVisible?'1px':'0';
+}
+
+// CLIENTS
+function setFilter(f,el){
+  curFilter=f;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderClients();
+}
+
+function renderClients(){
+  const q=document.getElementById('search-inp').value.toLowerCase();
+  let list=[...policies].sort((a,b)=>(pd(b.effective)||new Date(0))-(pd(a.effective)||new Date(0)));
+  if(q)list=list.filter(p=>p.name.toLowerCase().includes(q));
+  if(curFilter!=='all')list=list.filter(p=>{
+    const s=getStatus(p);
+    if(curFilter==='soon')return s==='soon14'||s==='soon7';
+    return s===curFilter;
+  });
+  const el=document.getElementById('clients-list');
+  if(!list.length){el.innerHTML=`<div class="empty"><div class="ei">📋</div><p>No policies found.<br>Tap "+ New Policy" to get started.</p></div>`;return;}
+  el.innerHTML=list.map(p=>{
+    const s=getStatus(p);
+    const c=earnedC(p);
+    const showRen=s!=='canceled'&&s!=='renewed';
+    return`<div class="policy-card">
+      <div class="card-main">
+        <div class="card-bar ${barClass(s)}"></div>
+        <div class="card-body" onclick="openDetail('${p.id}')">
+          <div class="card-top"><div class="card-name">${p.name}</div><div class="badge ${bClass(s)}">${stLabel(s)}</div></div>
+          <div class="card-co-tag">${p.company||'GEICO'}</div>
+          <div class="card-meta">
+            <div class="mp"><span class="mk">Effective</span><span class="mv">${fmt(p.effective)}</span></div>
+            <div class="mp"><span class="mk">Expires</span><span class="mv">${fmt(p.expiration)}</span></div>
+            <div class="mp"><span class="mk">1st Payment</span><span class="mv">${money(p.pay1)}</span></div>
+            <div class="mp"><span class="mk">Other Months</span><span class="mv">${money(p.pay2)}</span></div>
+          </div>
+          <div class="card-comm"><span class="cc-lbl">Commission Earned</span><span class="cc-val">${money(c)}</span></div>
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="ca edit" onclick="event.stopPropagation();openEdit('${p.id}')">✏️ Edit</button>
+        ${showRen?`<button class="ca renew" onclick="event.stopPropagation();openRenew('${p.id}')">🔄 Renew</button>`:''}
+        <button class="ca del" onclick="event.stopPropagation();openDelete('${p.id}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// DETAIL
+function openDetail(id){
+  const p=policies.find(x=>x.id===id);if(!p)return;
+  detailId=id;
+  const s=getStatus(p);
+  document.getElementById('d-name').textContent=p.name;
+  document.getElementById('d-badge').innerHTML=`<span class="badge ${bClass(s)}">${stLabel(s)}</span>`;
+  const c=earnedC(p),cb=parseFloat(p.commission||0)-c;
+  let rows=[['Company',p.company||'GEICO'],['Effective',fmt(p.effective)],['Expiration',fmt(p.expiration)],['Username',p.username||'N/A'],['Password',p.password||'N/A'],['1st Month',money(p.pay1)],['Other 5 Mo.',money(p.pay2)],['Full 6-Month',money(p.full)],['Total Commission',money(p.commission)],['Earned Commission',money(c)]];
+  if(p.status==='canceled'){rows.push(['Cancellation Date',fmt(p.cancelDate)]);rows.push(['Chargeback',money(cb)]);}
+  document.getElementById('d-body').innerHTML=rows.map(([k,v])=>`<div class="d-row"><span class="d-key">${k}</span><span class="d-val">${v}</span></div>`).join('');
+  openM('m-detail');
+}
+function editFromDetail(){closeM('m-detail');setTimeout(()=>openEdit(detailId),280);}
+
+// ADD/EDIT
+function openAdd(){
+  editId=null;
+  document.getElementById('m-title').textContent='New Policy';
+  document.getElementById('m-sub').textContent='Fill in client details';
+  ['f-name','f-eff','f-exp','f-user','f-pass','f-p1','f-p2','f-full','f-comm','f-cd'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  document.getElementById('f-co').value='GEICO';
+  document.getElementById('f-status').value='active';
+  document.getElementById('f-cg').style.display='none';
+  document.getElementById('cancel-info').style.display='none';
+  openM('m-client');
+}
+function openEdit(id){
+  const p=policies.find(x=>x.id===id);if(!p)return;
+  editId=id;
+  document.getElementById('m-title').textContent='Edit Policy';
+  document.getElementById('m-sub').textContent=p.name;
+  document.getElementById('f-name').value=p.name;
+  document.getElementById('f-co').value=p.company||'GEICO';
+  document.getElementById('f-eff').value=p.effective||'';
+  document.getElementById('f-exp').value=p.expiration||'';
+  document.getElementById('f-user').value=p.username||'';
+  document.getElementById('f-pass').value=p.password||'';
+  document.getElementById('f-p1').value=p.pay1||'';
+  document.getElementById('f-p2').value=p.pay2||'';
+  document.getElementById('f-full').value=p.full||'';
+  document.getElementById('f-comm').value=p.commission?money(p.commission):'';
+  document.getElementById('f-status').value=p.status||'active';
+  document.getElementById('f-cd').value=p.cancelDate||'';
+  onStChange();
+  openM('m-client');
+}
+function calcC(){const v=parseFloat(document.getElementById('f-full').value)||0;document.getElementById('f-comm').value=v>0?money(v*0.1):'';}
+function calcRC(){const v=parseFloat(document.getElementById('r-full').value)||0;document.getElementById('r-comm').value=v>0?money(v*0.1):'';}
+function onStChange(){
+  const s=document.getElementById('f-status').value;
+  document.getElementById('f-cg').style.display=s==='canceled'?'block':'none';
+  document.getElementById('cancel-info').style.display='none';
+}
+function calcCB(){
+  const eff=document.getElementById('f-eff').value,exp=document.getElementById('f-exp').value,can=document.getElementById('f-cd').value;
+  const full=parseFloat(document.getElementById('f-full').value)||0,comm=full*0.1;
+  if(!eff||!exp||!can||!comm)return;
+  const tot=(pd(exp)-pd(eff))/86400000,act=Math.min(Math.max((pd(can)-pd(eff))/86400000,0),tot);
+  const earned=comm*(act/tot),cb=comm-earned;
+  const el=document.getElementById('cancel-info');
+  el.style.display='block';
+  el.innerHTML=`Total: ${money(comm)} · Active: ${Math.round(act)}/${Math.round(tot)} days<br>Earned: <strong>${money(earned)}</strong> · Chargeback: <strong>${money(cb)}</strong>`;
+}
+function saveClient(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){showToast('Client name required');return;}
+  const eff=document.getElementById('f-eff').value,exp=document.getElementById('f-exp').value;
+  if(!eff||!exp){showToast('Policy dates required');return;}
+  const full=parseFloat(document.getElementById('f-full').value)||0;
+  const p={
+    id:editId||uid(),name,
+    company:document.getElementById('f-co').value||'GEICO',
+    effective:eff,expiration:exp,
+    username:document.getElementById('f-user').value||'N/A',
+    password:document.getElementById('f-pass').value||'N/A',
+    pay1:parseFloat(document.getElementById('f-p1').value)||0,
+    pay2:parseFloat(document.getElementById('f-p2').value)||0,
+    full,commission:full*0.1,
+    status:document.getElementById('f-status').value,
+    cancelDate:document.getElementById('f-cd').value||null,
+    createdAt:editId?(policies.find(x=>x.id===editId)?.createdAt||Date.now()):Date.now(),
+  };
+  if(editId){const i=policies.findIndex(x=>x.id===editId);policies[i]=p;}
+  else policies.push(p);
+  save();closeM('m-client');refresh();showToast(editId?'Policy updated':'Policy saved');
+}
+
+// RENEW
+function openRenew(id){
+  renewId=id;
+  const p=policies.find(x=>x.id===id);
+  document.getElementById('ren-sub').textContent=p?.name;
+  ['r-eff','r-exp','r-p1','r-p2','r-full','r-comm'].forEach(i=>document.getElementById(i).value='');
+  openM('m-renew');
+}
+function saveRenewal(){
+  const p=policies.find(x=>x.id===renewId);if(!p)return;
+  const eff=document.getElementById('r-eff').value,exp=document.getElementById('r-exp').value;
+  if(!eff||!exp){showToast('New dates required');return;}
+  p.status='renewed';
+  const full=parseFloat(document.getElementById('r-full').value)||0;
+  policies.push({id:uid(),name:p.name,company:p.company,effective:eff,expiration:exp,username:p.username,password:p.password,pay1:parseFloat(document.getElementById('r-p1').value)||0,pay2:parseFloat(document.getElementById('r-p2').value)||0,full,commission:full*0.1,status:'active',cancelDate:null,createdAt:Date.now()});
+  save();closeM('m-renew');refresh();showToast(`${p.name} renewed`);
+}
+
+// DELETE
+function openDelete(id){
+  deleteId=id;
+  const p=policies.find(x=>x.id===id);
+  document.getElementById('del-sub').textContent=`Deleting: ${p?.name}`;
+  openM('m-delete');
+}
+function confirmDelete(){policies=policies.filter(p=>p.id!==deleteId);save();closeM('m-delete');refresh();showToast('Policy deleted');}
+
+// CALENDAR
+function initCal(){calY=today.getFullYear();calM=today.getMonth();}
+function calNav(d){calM+=d;if(calM<0){calM=11;calY--;}if(calM>11){calM=0;calY++;}renderCal();}
+function renderCal(){
+  const MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-mo-lbl').textContent=`${MN[calM]} ${calY}`;
+  const fd=new Date(calY,calM,1).getDay(),dIM=new Date(calY,calM+1,0).getDate(),dIP=new Date(calY,calM,0).getDate();
+  const eMap={};
+  policies.forEach(p=>{
+    const s=getStatus(p);
+    if(p.effective){const d=pd(p.effective);if(d){const k=`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;if(!eMap[k])eMap[k]=[];eMap[k].push({type:s==='canceled'?'canceled':s==='renewed'?'renewed':'active',name:p.name,kind:'Effective'});}}
+    if(p.expiration&&p.status!=='canceled'){const d=pd(p.expiration);if(d){const k=`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;if(!eMap[k])eMap[k]=[];eMap[k].push({type:'renewal',name:p.name,kind:'Renewal Due'});}}
+  });
+  let html='';
+  for(let i=fd-1;i>=0;i--)html+=`<div class="cal-cell other"><div class="cal-dn">${dIP-i}</div></div>`;
+  for(let d=1;d<=dIM;d++){
+    const isT=d===today.getDate()&&calM===today.getMonth()&&calY===today.getFullYear();
+    const k=`${calY}-${calM}-${d}`;const evs=eMap[k]||[];
+    html+=`<div class="cal-cell${isT?' today':''}" onclick="showCalDay(${d},${calM},${calY})"><div class="cal-dn">${d}</div><div class="cdots">${evs.map(e=>`<span class="cdot cdot-${e.type}"></span>`).join('')}</div></div>`;
+  }
+  const rem=(fd+dIM)%7===0?0:7-((fd+dIM)%7);
+  for(let d=1;d<=rem;d++)html+=`<div class="cal-cell other"><div class="cal-dn">${d}</div></div>`;
+  document.getElementById('cal-grid').innerHTML=html;
+}
+function showCalDay(d,m,y){
+  const MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-day-lbl').textContent=`${MN[m]} ${d}, ${y}`;
+  const evs=[];
+  policies.forEach(p=>{
+    if(p.effective){const ed=pd(p.effective);if(ed&&ed.getDate()===d&&ed.getMonth()===m&&ed.getFullYear()===y){const s=getStatus(p);evs.push({type:s==='canceled'?'canceled':s==='renewed'?'renewed':'active',name:p.name,kind:'Effective Date'});}}
+    if(p.expiration&&p.status!=='canceled'){const xd=pd(p.expiration);if(xd&&xd.getDate()===d&&xd.getMonth()===m&&xd.getFullYear()===y)evs.push({type:'renewal',name:p.name,kind:'Renewal Due'});}
+  });
+  const el=document.getElementById('cal-events');
+  if(!evs.length){el.innerHTML=`<div style="font-size:12px;color:var(--text-3);text-align:center;padding:12px">No policies on this date</div>`;return;}
+  el.innerHTML=evs.map(e=>`<div class="cal-ev ${e.type}"><div class="cal-ev-name">${e.name}</div><div class="cal-ev-kind">${e.kind}</div></div>`).join('');
+}
+
+// RENEWALS
+function renderRenewals(){
+  const list=policies.filter(p=>p.status!=='canceled').map(p=>({...p,days:daysTo(p.expiration)})).filter(p=>p.days>=0&&p.days<=14).sort((a,b)=>a.days-b.days);
+  document.getElementById('ren-cnt-lbl').textContent=`${list.length} Upcoming Renewal${list.length!==1?'s':''} — next 14 days`;
+  const el=document.getElementById('renewals-list');
+  if(!list.length){el.innerHTML=`<div class="empty"><div class="ei">✅</div><p>No renewals in the next 14 days.</p></div>`;return;}
+  el.innerHTML=list.map(p=>{
+    const urg=p.days<=7;
+    const dc=p.days===0?'dc0':urg?'dc7':'dc14';
+    const dl=p.days===0?'Today':`${p.days}d`;
+    return`<div class="ren-item ${urg?'u7':'u14'}">
+      <div class="ren-av">${p.name[0].toUpperCase()}</div>
+      <div class="ren-info"><div class="ren-name">${p.name}</div><div class="ren-date">Expires ${fmt(p.expiration)}</div></div>
+      <span class="days-chip ${dc}">${dl}</span>
+      <button class="ren-btn" onclick="openRenew('${p.id}')">Renewed ✓</button>
+    </div>`;
+  }).join('');
+}
+
+// COMMISSION
+function renderCommissions(){
+  const active=policies.filter(p=>p.status!=='canceled');
+  const tot=policies.reduce((s,p)=>s+earnedC(p),0);
+  const nm=today.getMonth(),ny=today.getFullYear();
+  const mo=active.filter(p=>{const d=pd(p.effective);return d&&d.getMonth()===nm&&d.getFullYear()===ny;}).reduce((s,p)=>s+earnedC(p),0);
+  document.getElementById('comm-total').textContent=money(tot);
+  document.getElementById('comm-month').textContent=money(mo);
+  document.getElementById('comm-active').textContent=active.length;
+  const mMap={};
+  policies.forEach(p=>{const c=earnedC(p);if(!c)return;const d=pd(p.effective);if(!d)return;const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;if(!mMap[k])mMap[k]={total:0,count:0};mMap[k].total+=c;mMap[k].count++;});
+  const MNS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const keys=Object.keys(mMap).sort().reverse();
+  const el=document.getElementById('comm-months');
+  if(!keys.length){el.innerHTML=`<div class="empty"><div class="ei">💰</div><p>No commission data yet.</p></div>`;return;}
+  el.innerHTML=keys.map(k=>{const[yr,mo]=k.split('-');return`<div class="month-row"><div><div class="mo-name">${MNS[parseInt(mo)-1]} ${yr}</div><div class="mo-cnt">${mMap[k].count} polic${mMap[k].count!==1?'ies':'y'}</div></div><div class="mo-amt">${money(mMap[k].total)}</div></div>`;}).join('');
+}
+
+// EXPORT
+function exportCopy(){
+  const s=[...policies].sort((a,b)=>(pd(a.effective)||new Date(0))-(pd(b.effective)||new Date(0)));
+  const t=s.map(p=>`• ${p.name} — ${fmt(p.effective)}`).join('\n');
+  // Use a temporary textarea as a reliable fallback
+  const ta=document.createElement('textarea');
+  ta.value=t; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try {
+    document.execCommand('copy');
+    showToast('Copied to clipboard!');
+  } catch(e) {
+    // Last resort: show a prompt the user can manually copy from
+    prompt('Select all and copy (Ctrl+A, Ctrl+C):', t);
+  }
+  document.body.removeChild(ta);
+}
+
+function exportCSV(){
+  const h=['Name','Company','Effective','Expiration','Username','Password','Pay1','Pay2','Full','Commission','Status','CancelDate'];
+  const rows=policies.map(p=>[p.name,p.company,p.effective,p.expiration,p.username,p.password,p.pay1,p.pay2,p.full,p.commission,p.status,p.cancelDate||''].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
+  const csv=[h.join(','),...rows].join('\n');
+  // Use a data URI instead of createObjectURL to avoid sandbox issues
+  const dataUri='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  const a=document.createElement('a');
+  a.href=dataUri; a.download='policypro_backup.csv';
+  a.style.display='none';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  showToast('CSV downloaded');
+}
+
+function exportPDF(){
+  const s=[...policies].sort((a,b)=>(pd(a.effective)||new Date(0))-(pd(b.effective)||new Date(0)));
+  const rows=s.map(p=>`<tr><td style="padding:8px 14px;border-bottom:1px solid #f0f0f0;font-family:sans-serif;font-size:13px">${p.name}</td><td style="padding:8px 14px;border-bottom:1px solid #f0f0f0;font-family:sans-serif;font-size:13px;color:#6b6b74">${fmt(p.effective)}</td></tr>`).join('');
+  const html=`<!DOCTYPE html><html><head><title>PolicyPro Export</title><style>body{font-family:sans-serif;padding:40px;color:#111}h1{font-size:22px;font-weight:600;margin-bottom:4px}p.sub{color:#999;font-size:13px;margin-bottom:28px}table{width:100%;border-collapse:collapse}th{padding:10px 14px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#6d28d9;font-weight:700;background:#f7f7f8}@media print{body{padding:20px}}</style></head><body><h1>PolicyPro CRM</h1><p class="sub">Exported ${new Date().toLocaleDateString()} &middot; ${policies.length} policies</p><table><thead><tr><th>Client Name</th><th>Effective Date</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
+  // Encode as data URI so it opens without needing window.open to write to a new tab
+  const dataUri='data:text/html;charset=utf-8,'+encodeURIComponent(html);
+  const a=document.createElement('a');
+  a.href=dataUri; a.target='_blank'; a.rel='noopener';
+  a.style.display='none';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  showToast('PDF page opened — use Print to save');
+}
+
+// CSV IMPORT
+function handleCSV(ev){
+  const file=ev.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    const lines=e.target.result.split('\n').filter(l=>l.trim());
+    if(lines.length<2){showToast('CSV appears empty');return;}
+    const headers=lines[0].split(',').map(h=>h.replace(/"/g,'').trim().toLowerCase());
+    let n=0;
+    for(let i=1;i<lines.length;i++){
+      const vals=lines[i].split(',').map(v=>v.replace(/"/g,'').trim());
+      const row={};headers.forEach((h,idx)=>row[h]=vals[idx]||'');
+      const name=row['name']||row['client name']||row['client']||'';if(!name)continue;
+      const full=parseFloat(row['full']||row['full payment']||0);
+      policies.push({id:uid(),name,company:row['company']||'GEICO',effective:row['effective']||row['effective date']||'',expiration:row['expiration']||row['expiration date']||'',username:row['username']||'N/A',password:row['password']||'N/A',pay1:parseFloat(row['pay1']||0),pay2:parseFloat(row['pay2']||0),full,commission:parseFloat(row['commission']||(full*0.1)),status:row['status']||'active',cancelDate:row['canceldate']||null,createdAt:Date.now()});
+      n++;
+    }
+    save();dismissImport();refresh();showToast(`Imported ${n} policies`);ev.target.value='';
+  };
+  r.readAsText(file);
+}
+function dismissImport(){document.getElementById('import-screen').classList.add('hidden');localStorage.setItem('pp_first','done');}
+
+// TABS
+function switchTab(t){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(n=>n.classList.remove('active'));
+  document.getElementById('view-'+t).classList.add('active');
+  document.getElementById('tab-'+t).classList.add('active');
+  if(t==='calendar')renderCal();
+  if(t==='renewals')renderRenewals();
+  if(t==='commissions')renderCommissions();
+}
+
+// MODALS
+function openM(id){document.getElementById(id).classList.add('open');}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});});
+
+// TOAST
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+
+// REFRESH
+function refresh(){updateStats();renderClients();if(document.getElementById('view-calendar').classList.contains('active'))renderCal();if(document.getElementById('view-renewals').classList.contains('active'))renderRenewals();if(document.getElementById('view-commissions').classList.contains('active'))renderCommissions();}
+
+// LOCK SCREEN
+const PASSCODE = '131095';
+let lockEntry = '';
+
+function lockInput(digit) {
+  if (lockEntry.length >= PASSCODE.length) return;
+  lockEntry += digit;
+  updateLockDots();
+  if (lockEntry.length === PASSCODE.length) {
+    setTimeout(() => checkPasscode(), 120);
+  }
+}
+
+function lockDelete() {
+  lockEntry = lockEntry.slice(0, -1);
+  updateLockDots();
+  hideLockError();
+}
+
+function updateLockDots() {
+  const dots = document.querySelectorAll('#lock-dots span');
+  dots.forEach((d, i) => {
+    d.classList.toggle('filled', i < lockEntry.length);
+  });
+}
+
+function checkPasscode() {
+  if (lockEntry === PASSCODE) {
+    document.getElementById('lock-screen').classList.add('hidden');
+    // After unlock, show import screen if first time
+    if (localStorage.getItem('pp_first') !== 'done') {
+      document.getElementById('import-screen').classList.remove('hidden');
+    }
+  } else {
+    const dotsEl = document.getElementById('lock-dots');
+    dotsEl.classList.add('shake');
+    document.getElementById('lock-error').classList.remove('hidden');
+    setTimeout(() => dotsEl.classList.remove('shake'), 400);
+    lockEntry = '';
+    updateLockDots();
+  }
+}
+
+function hideLockError() {
+  document.getElementById('lock-error').classList.add('hidden');
+}
+
+// INIT
+initCal();
+refresh();
+</script>
+</body>
+</html>
