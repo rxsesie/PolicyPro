@@ -496,7 +496,7 @@ body {
       <div class="f-grp"><label class="f-lbl">Company</label><input class="f-inp" id="f-co" type="text" value="GEICO"></div>
       <div class="f-sec">Policy Dates</div>
       <div class="f-row">
-        <div class="f-grp"><label class="f-lbl">Effective Date *</label><input class="f-inp" id="f-eff" type="date"></div>
+        <div class="f-grp"><label class="f-lbl">Effective Date *</label><input class="f-inp" id="f-eff" type="date" oninput="fillRenewalDate('f')" onchange="fillRenewalDate('f')"></div>
         <div class="f-grp"><label class="f-lbl">Expiration Date *</label><input class="f-inp" id="f-exp" type="date"></div>
       </div>
       <div class="f-sec">Portal Access</div>
@@ -552,7 +552,7 @@ body {
     <div class="sh-body">
       <div class="f-sec">New Policy Dates</div>
       <div class="f-row">
-        <div class="f-grp"><label class="f-lbl">New Effective *</label><input class="f-inp" id="r-eff" type="date"></div>
+        <div class="f-grp"><label class="f-lbl">New Effective *</label><input class="f-inp" id="r-eff" type="date" oninput="fillRenewalDate('r')" onchange="fillRenewalDate('r')"></div>
         <div class="f-grp"><label class="f-lbl">New Expiration *</label><input class="f-inp" id="r-exp" type="date"></div>
       </div>
       <div class="f-sec">New Payment Breakdown</div>
@@ -645,6 +645,23 @@ function save() { localStorage.setItem('pp_v3', JSON.stringify(policies)); }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 function fmt(str) { if (!str) return 'N/A'; var p = str.split('-'); return p[1]+'/'+p[2]+'/'+p[0]; }
 function pd(str) { if (!str) return null; return new Date(str + 'T00:00:00'); }
+// Use calendar months and clamp to the last day of the destination month.
+function sixMonthsAfter(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return '';
+  var parts = value.split('-').map(Number);
+  var date = pd(value);
+  if (!date || isNaN(date) || date.getFullYear() !== parts[0] || date.getMonth() !== parts[1]-1 || date.getDate() !== parts[2]) return '';
+  date.setDate(1);
+  date.setMonth(date.getMonth() + 6);
+  var lastDay = new Date(date.getFullYear(), date.getMonth()+1, 0).getDate();
+  date.setDate(Math.min(parts[2], lastDay));
+  return String(date.getFullYear()).padStart(4, '0') + '-' + String(date.getMonth()+1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+}
+function fillRenewalDate(prefix) {
+  document.getElementById(prefix+'-exp').value = sixMonthsAfter(document.getElementById(prefix+'-eff').value);
+  if (prefix === 'f') calcCB();
+}
+
 function daysTo(s) { var d = pd(s); if (!d) return 9999; return Math.round((d - today) / 86400000); }
 function money(n) { return '$' + parseFloat(n || 0).toFixed(2); }
 function moneyS(n) { var v = parseFloat(n || 0); return v >= 1000 ? '$' + (v/1000).toFixed(1) + 'k' : '$' + v.toFixed(0); }
@@ -975,16 +992,38 @@ function exportCopy() {
   document.body.removeChild(ta);
 }
 
-function exportCSV() {
-  var h = ['Name','Company','Effective','Expiration','Username','Password','Pay1','Pay2','Full','Commission','Status','CancelDate','Notes'];
-  var rows = policies.map(function(p){
-    return [p.name,p.company,p.effective,p.expiration,p.username,p.password,p.pay1,p.pay2,p.full,p.commission,p.status,p.cancelDate||'',p.notes||'']
-      .map(function(v){return'"'+String(v).replace(/"/g,'""')+'"';}).join(',');
+function backupCSV() {
+  var fields = ['name','company','effective','expiration','username','password','pay1','pay2','full','commission','status','cancelDate','notes','id','createdAt'];
+  var headers = ['Name','Company','Effective','Expiration','Username','Password','Pay1','Pay2','Full','Commission','Status','CancelDate','Notes','ID','CreatedAt'];
+  var rows = policies.map(function(p) {
+    return fields.map(function(key) {
+      return '"' + String(p[key] == null ? '' : p[key]).replace(/"/g, '""') + '"';
+    }).join(',');
   });
-  var csv = [h.join(',')].concat(rows).join('\n');
-  var a = document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); a.download='policypro_backup.csv'; a.style.display='none';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  showToast('CSV downloaded');
+  return '\ufeff' + [headers.join(',')].concat(rows).join('\r\n');
+}
+
+function exportCSV() {
+  var url, link;
+  try {
+    var blob = new Blob([backupCSV()], {type: 'text/csv;charset=utf-8;'});
+    url = URL.createObjectURL(blob);
+    link = document.createElement('a');
+    link.href = url;
+    link.download = 'policypro_backup.csv';
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    showToast('CSV download started');
+  } catch (error) {
+    showToast('Could not download CSV. Please try again.');
+  } finally {
+    // Keep the URL alive while Safari and other browsers start the download.
+    if (url) setTimeout(function() {
+      URL.revokeObjectURL(url);
+      if (link && link.parentNode) link.parentNode.removeChild(link);
+    }, 60000);
+  }
 }
 
 function exportPDF() {
@@ -996,24 +1035,57 @@ function exportPDF() {
   showToast('PDF page opened — use Print to save');
 }
 
+function parseCSV(text) {
+  text = text.replace(/^\ufeff/, '');
+  var rows = [], row = [], value = '', quoted = false;
+  for (var i = 0; i < text.length; i++) {
+    var ch = text[i];
+    if (ch === '"') {
+      if (quoted && text[i+1] === '"') { value += '"'; i++; }
+      else if (quoted || value === '') quoted = !quoted;
+      else value += ch;
+    } else if (ch === ',' && !quoted) {
+      row.push(value); value = '';
+    } else if ((ch === '\n' || ch === '\r') && !quoted) {
+      row.push(value); rows.push(row); row = []; value = '';
+      if (ch === '\r' && text[i+1] === '\n') i++;
+    } else value += ch;
+  }
+  if (quoted) throw new Error('Unclosed CSV quote');
+  if (value !== '' || row.length) { row.push(value); rows.push(row); }
+  return rows.filter(function(r) { return r.some(function(v) { return v.trim() !== ''; }); });
+}
+
 function handleCSV(ev) {
   var file = ev.target.files[0]; if (!file) return;
   var r = new FileReader();
   r.onload = function(e) {
-    var lines = e.target.result.split('\n').filter(function(l){return l.trim();});
-    if (lines.length < 2) { showToast('CSV appears empty'); return; }
-    var headers = lines[0].split(',').map(function(h){return h.replace(/"/g,'').trim().toLowerCase();});
-    var n = 0;
-    for (var i = 1; i < lines.length; i++) {
-      var vals = lines[i].split(',').map(function(v){return v.replace(/"/g,'').trim();});
-      var row = {}; headers.forEach(function(h,idx){row[h]=vals[idx]||'';});
-      var name = row['name']||row['client name']||row['client']||''; if (!name) continue;
-      var full = parseFloat(row['full']||row['full payment']||0);
-      policies.push({id:uid(),name:name,company:row['company']||'GEICO',effective:row['effective']||row['effective date']||'',expiration:row['expiration']||row['expiration date']||'',username:row['username']||'N/A',password:row['password']||'N/A',pay1:parseFloat(row['pay1']||0),pay2:parseFloat(row['pay2']||0),full:full,commission:parseFloat(row['commission']||(full*0.1)),status:row['status']||'active',cancelDate:row['canceldate']||null,notes:row['notes']||'',createdAt:Date.now()});
-      n++;
-    }
-    save(); dismissImport(); refresh(); showToast('Imported '+n+' policies'); ev.target.value='';
+    try {
+      var rows = parseCSV(e.target.result);
+      if (rows.length < 2) { showToast('CSV appears empty'); return; }
+      var headers = rows.shift().map(function(h) { return h.trim().toLowerCase(); });
+      var imported = [];
+      rows.forEach(function(vals) {
+        var row = {}; headers.forEach(function(h, idx) { row[h] = vals[idx] == null ? '' : vals[idx]; });
+        var name = row['name'] || row['client name'] || row['client'] || ''; if (!name.trim()) return;
+        var full = parseFloat(row['full'] || row['full payment'] || 0);
+        imported.push({id:row['id'] || uid(),name:name,company:row['company']||'GEICO',effective:row['effective']||row['effective date']||'',expiration:row['expiration']||row['expiration date']||'',username:row['username'] == null ? 'N/A' : row['username'],password:row['password'] == null ? 'N/A' : row['password'],pay1:parseFloat(row['pay1']||0),pay2:parseFloat(row['pay2']||0),full:full,commission:parseFloat(row['commission']||(full*0.1)),status:row['status']||'active',cancelDate:row['canceldate']||null,notes:row['notes']||'',createdAt:row['createdat'] ? Number(row['createdat']) : Date.now()});
+      });
+      if (!imported.length) { showToast('No policies found in CSV'); return; }
+      // Restore existing IDs instead of duplicating policies from a full backup.
+      var next = policies.slice();
+      imported.forEach(function(p) {
+        var index = next.findIndex(function(existing) { return existing.id === p.id; });
+        if (index < 0) next.push(p); else next[index] = p;
+      });
+      localStorage.setItem('pp_v3', JSON.stringify(next));
+      policies = next;
+      dismissImport(); refresh(); showToast('Imported '+imported.length+' policies');
+    } catch (error) {
+      showToast('Could not import CSV. Check the file and available storage.');
+    } finally { ev.target.value = ''; }
   };
+  r.onerror = function() { showToast('Could not read CSV file'); ev.target.value = ''; };
   r.readAsText(file);
 }
 
